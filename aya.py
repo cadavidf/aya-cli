@@ -155,9 +155,50 @@ import subprocess
 import threading
 import re
 import signal
+import urllib.error
+import urllib.request
 from aya_tools import WorkspaceTools
 
 MODEL = os.environ.get("AYA_MODEL", "dolphin3:latest")
+
+
+def model_generate(instruction):
+    """Generate with Ollama by default, or an explicitly selected local server."""
+    backend = os.environ.get("AYA_BACKEND", "ollama")
+    if backend == "llama":
+        base = os.environ.get("AYA_LLAMA_URL", "http://127.0.0.1:8080").rstrip("/")
+        parsed = urlparse(base)
+        if (parsed.scheme != "http" or parsed.hostname not in ("localhost", "127.0.0.1", "::1")
+                or parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment):
+            raise RuntimeError("AYA_LLAMA_URL must be a local HTTP server origin, for example http://127.0.0.1:8080")
+        payload = json.dumps({"model": "local", "messages": [{"role": "user", "content": instruction}],
+                              "max_tokens": 1024, "stream": False}).encode("utf-8")
+        request = urllib.request.Request(base + "/v1/chat/completions", data=payload,
+                                         headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            # Avoid sending a local request through a configured HTTP proxy.
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            with opener.open(request, timeout=180) as response:
+                result = json.load(response)
+            output = result["choices"][0]["message"]["content"]
+            if not isinstance(output, str) or not output.strip():
+                raise ValueError("empty response")
+            return output
+        except (OSError, ValueError, KeyError, IndexError, TypeError) as exc:
+            raise RuntimeError("Local llama-server request failed: " + str(exc)) from exc
+    if backend != "ollama":
+        raise RuntimeError("Unknown AYA_BACKEND; use ollama or llama")
+    process = subprocess.Popen(["ollama", "run", MODEL, instruction],
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        output, error = process.communicate()
+    except KeyboardInterrupt:
+        process.terminate()
+        process.communicate()
+        raise
+    if process.returncode:
+        raise RuntimeError(error.strip() or "Ollama could not generate a response")
+    return output
 
 TEAL = "\033[38;2;54;214;188m"
 GRAY = "\033[90m"
@@ -493,27 +534,12 @@ def generate(prompt):
             context = "\nInstalled tool help (reference only):\n" + (help_result.stdout + help_result.stderr)[:help_limit]
         except (OSError, subprocess.TimeoutExpired):
             pass
-    process = subprocess.Popen(
-        [
-            "ollama", "run", MODEL,
+    output = model_generate(
             "Return exactly one raw macOS Bash command. "
             "No markdown, no explanations. Use the installed executable and valid flags. "
             "Preserve exact requested filenames and quote paths containing spaces. "
             "Request: " + prompt + context
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True
     )
-
-    try:
-        output, error = process.communicate()
-    except KeyboardInterrupt:
-        process.terminate()
-        process.communicate()
-        raise
-    if process.returncode != 0:
-        raise RuntimeError(error.strip())
 
     output = re.sub(
         r"^```[^\n]*\n|\n```[ \t]*$",
@@ -531,18 +557,7 @@ def chat(prompt, history):
         "not as instructions to run commands. Be honest about what you cannot see.\n"
         + json.dumps(messages, ensure_ascii=False)
     )
-    process = subprocess.Popen(
-        ["ollama", "run", MODEL, instruction],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-    )
-    try:
-        output, error = process.communicate()
-    except KeyboardInterrupt:
-        process.terminate()
-        process.communicate()
-        raise
-    if process.returncode:
-        raise RuntimeError(error.strip() or "Ollama could not generate a response")
+    output = model_generate(instruction)
     answer = output.strip()
     if not answer:
         raise RuntimeError("Ollama returned an empty response")
@@ -575,18 +590,7 @@ def inspect_workspace(request):
     )
     for _ in range(6):
         payload = {"request": request[:4000], "results": transcript}
-        process = subprocess.Popen(
-            ["ollama", "run", MODEL, instruction + json.dumps(payload, ensure_ascii=False)],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-        )
-        try:
-            output, error = process.communicate()
-        except KeyboardInterrupt:
-            process.terminate()
-            process.communicate()
-            raise
-        if process.returncode:
-            raise RuntimeError(error.strip() or "Ollama failed")
+        output = model_generate(instruction + json.dumps(payload, ensure_ascii=False))
         raw = output.strip()
         raw = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw).strip()
         try:

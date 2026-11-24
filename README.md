@@ -11,3 +11,5 @@ Use `/inspect <question>` to let Aya inspect the current working directory with 
 Run all checks with `python3 -m unittest discover -s evals -p 'test_*.py'`.
 
 To try another installed model without changing Aya's default, run `AYA_MODEL=model-name aya` (or `AYA_MODEL=model-name python3 aya.py`).
+
+An experimental local llama.cpp server can be selected with `AYA_BACKEND=llama AYA_LLAMA_URL=http://127.0.0.1:8080 aya`. Start `llama-server` separately with your chosen GGUF model and verified device settings; Aya uses the server's loaded model and chat template, so `AYA_MODEL` does not select a model for this backend. The address must be a local HTTP origin. An unavailable server returns an error rather than silently switching backends. Ollama and `dolphin3:latest` remain the defaults.
