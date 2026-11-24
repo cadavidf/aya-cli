@@ -9,6 +9,7 @@ Updated: 2026-11-24. Machine: Intel iMac, AMD Radeon Pro 5500 XT, 8 GB VRAM. Aya
 - One small float16 `ADD` GPU operation passed the test-backend-ops CPU comparison (1/1). This does not establish model correctness.
 - A 361.8M-parameter SmolLM2 GGUF completed short `llama-bench` tests with one GPU layer and with `-ngl 99`. With 32 prompt tokens and 8 generated tokens, one repetition, the latter measured 395.17 prompt tokens/s and 46.22 generation tokens/s. The test disabled KV and operation offloading, so it does not mean all computation was on GPU. It does not test output correctness or represent Aya's model.
 - Dolphin 8B Q4_K_M, with KV and operation offload disabled, completed the same short single-repetition benchmark: 1 layer, 5.96 prompt / 5.23 generation tokens/s; 8 layers, 6.88 / 5.17; 32 layers, 68.34 / 16.80. These are preliminary throughput figures, not output correctness or long-run stability measurements.
+- Dolphin generated a sensible one-sentence explanation of FFmpeg with 32 GPU layers using llama-cli, 512 context, temperature 0 and 32 maximum tokens. The CLI reported 15.9 generation tokens/s. This one answer is only a smoke test.
 - A 99-layer test was requested but interrupted before a result was returned. Its execution state is unknown. Earlier GPU resets and a system panic make stable operation a specific requirement, not an assumption.
 
 ## Stages
