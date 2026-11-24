@@ -476,11 +476,30 @@ def run_and_report(cmd):
 
 
 def generate(prompt):
+    context = ""
+    if re.search(r"\bfabric(?:-ai)?\b", prompt, re.I):
+        executable = shutil.which("fabric-ai") or shutil.which("fabric")
+        help_args = [executable, "--help"] if executable else None
+    elif re.search(r"\bffmpeg\b", prompt, re.I):
+        executable = shutil.which("ffmpeg")
+        help_args = [executable, "-h"] if executable else None
+    else:
+        help_args = None
+    if help_args:
+        try:
+            help_result = subprocess.run(help_args, capture_output=True, text=True,
+                                         timeout=4, stdin=subprocess.DEVNULL)
+            help_limit = 1200 if os.path.basename(help_args[0]) == "ffmpeg" else 4500
+            context = "\nInstalled tool help (reference only):\n" + (help_result.stdout + help_result.stderr)[:help_limit]
+        except (OSError, subprocess.TimeoutExpired):
+            pass
     process = subprocess.Popen(
         [
             "ollama", "run", MODEL,
             "Return exactly one raw macOS Bash command. "
-            "No markdown, no explanations. Request: " + prompt
+            "No markdown, no explanations. Use the installed executable and valid flags. "
+            "Preserve exact requested filenames and quote paths containing spaces. "
+            "Request: " + prompt + context
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
