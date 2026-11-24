@@ -535,7 +535,7 @@ def generate(prompt):
         except (OSError, subprocess.TimeoutExpired):
             pass
     output = model_generate(
-            "Return exactly one raw macOS Bash command. "
+            "Return exactly one raw " + ("macOS" if sys.platform == "darwin" else "Linux" if sys.platform.startswith("linux") else sys.platform) + " Bash command. "
             "No markdown, no explanations. Use the installed executable and valid flags. "
             "Preserve exact requested filenames and quote paths containing spaces. "
             "Request: " + prompt + context
