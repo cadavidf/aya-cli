@@ -28,3 +28,21 @@ Three repetitions per case, directly calling `aya.generate`. This exercises gene
 | Same | 3 | 0.16 | `find . -name "report.txt"` | Same limitation. |
 
 The check demonstrates variability and remaining task accuracy issues; it is not a measurement of guard effectiveness.
+
+## Qwen 2.5 Coder abliterated, 7B
+
+Same three prompts, three sequential `aya.generate` calls each, `AYA_MODEL=huihui_ai/qwen2.5-coder-abliterate:7b`. No generated commands were executed. Ollama reported model ID `e30ab496af8a`, 4.8 GB, **100% GPU**, 4096 context after the trials. First call includes model loading; timings are wall-clock, not a controlled throughput benchmark.
+
+| Request | Trial | Seconds | Raw output | Review |
+| --- | ---: | ---: | --- | --- |
+| Show the current working directory. | 1 | 6.76 | `pwd` | Correct. |
+| Same | 2 | 0.05 | `pwd` | Correct. |
+| Same | 3 | 0.12 | `pwd` | Correct. |
+| Using ffmpeg extract audio from input.mp4 to output.wav as mono 16 kHz PCM. | 1 | 1.46 | `ffmpeg -i "input.mp4" -vn -ac 1 -ar 16000 -c:a pcm_s16le "output.wav"` | Has specified codec, rate and channel count; unexecuted. |
+| Same | 2 | 0.62 | `ffmpeg -i "input.mp4" -vn -ac 1 -ar 16000 -acodec pcm_s16le "output.wav"` | Has specified codec, rate and channel count; unexecuted. |
+| Same | 3 | 0.46 | `ffmpeg -i input.mp4 -vn -ac 1 -ar 16000 -f wav output.wav` | Has rate and channel count; relies on WAV's default codec rather than explicitly specifying PCM, and was not executed. |
+| Find files named report.txt under the current directory. | 1 | 0.39 | `find . -name "report.txt"` | Can include directories with this name. |
+| Same | 2 | 0.12 | `find . -name report.txt` | Can include directories with this name. |
+| Same | 3 | 0.21 | `find . -name "report.txt"` | Can include directories with this name. |
+
+For this small sample, Qwen avoided the backticks and missing audio options observed in Dolphin's follow-up, but neither model restricted the recursive results to files. Different run conditions and one small set of requests preclude a general reliability conclusion.
