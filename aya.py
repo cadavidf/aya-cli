@@ -157,7 +157,7 @@ import re
 import signal
 from aya_tools import WorkspaceTools
 
-MODEL = "dolphin3:latest"
+MODEL = os.environ.get("AYA_MODEL", "dolphin3:latest")
 
 TEAL = "\033[38;2;54;214;188m"
 GRAY = "\033[90m"
