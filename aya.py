@@ -729,6 +729,10 @@ def main():
             print("No command generated.\n")
             continue
 
+        if len(cmd) >= 2 and cmd.startswith("`") and cmd.endswith("`"):
+            print("Command rejected: it is wrapped in backticks. Please retry.")
+            continue
+
         if any(ord(char) < 32 or ord(char) == 127 or 128 <= ord(char) <= 159 for char in cmd):
             print("Command rejected: it contains control characters or multiple lines.")
             continue
