@@ -2,6 +2,8 @@
 
 Local terminal assistant powered by Ollama. Run `python3 aya.py` or use the `aya` shell command.
 
+On Linux or macOS, from an Aya checkout run `sh install.sh` to add a launcher at `~/.local/bin/aya`. Add `~/.local/bin` to your PATH if needed. Install and start Ollama separately, then run `ollama pull dolphin3:latest`. The installer does not install models or modify shell configuration and refuses to overwrite an existing launcher.
+
 Ask questions conversationally. Use `/command <request>` to generate a shell command; Aya asks before execution. Paste a YouTube link for the existing video workflow. Use `/help` for commands and `/clear` to clear session history.
 
 Run the isolated regression evaluations with `python3 evals/test_aya.py`.

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+script_path=$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$0")
+repo_dir=$(CDPATH= cd -- "$(dirname -- "$script_path")/.." && pwd -P)
+exec python3 "$repo_dir/aya.py" "$@"
