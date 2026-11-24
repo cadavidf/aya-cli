@@ -26,7 +26,7 @@ class MockServer:
 
 class LlamaBackendTest(unittest.TestCase):
     def test_command_chat_and_inspection_use_chat_protocol(self):
-        server = MockServer(["`echo hi`", "Hello", json.dumps({"answer": "blue"})])
+        server = MockServer(["echo hi", "Hello", json.dumps({"answer": "blue"})])
         with tempfile.TemporaryDirectory() as root:
             Path(root, "settings.txt").write_text("color=blue")
             old = os.getcwd()
@@ -35,7 +35,7 @@ class LlamaBackendTest(unittest.TestCase):
                 with patch.dict(os.environ, {"AYA_BACKEND": "llama", "AYA_LLAMA_URL": "http://127.0.0.1:9999"}), \
                      patch.object(aya.urllib.request, "build_opener", return_value=server), \
                      contextlib.redirect_stdout(io.StringIO()):
-                    self.assertEqual(aya.generate("say hi"), "`echo hi`")
+                    self.assertEqual(aya.generate("say hi"), "echo hi")
                     history = []
                     self.assertEqual(aya.chat("Hi", history), "Hello")
                     self.assertEqual(aya.inspect_workspace("Read settings.txt"), "blue")

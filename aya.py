@@ -575,6 +575,8 @@ def generate(prompt):
             "Return exactly one raw " + " ".join(host_shell()[:2]) + " command. "
             "No markdown, no explanations. Use the installed executable and valid flags. "
             "Preserve exact requested filenames and quote paths containing spaces. "
+            "Honor every requested constraint, including file type, recursion, codec, sample rate and channels; "
+            "do not invent options. For Unix find, use -type f when the request specifies files. "
             "Request: " + prompt + context
     )
 
@@ -582,6 +584,9 @@ def generate(prompt):
         r"^```[^\n]*\n|\n```[ \t]*$",
         "", output.strip()
     ).strip()
+
+    if len(output) >= 2 and output.startswith("`") and output.endswith("`"):
+        raise RuntimeError("Command is wrapped in backticks; please retry.")
 
     return output
 
