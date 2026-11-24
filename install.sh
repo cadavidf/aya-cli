@@ -3,7 +3,7 @@
 # It never installs Ollama or models and never edits shell configuration.
 set -eu
 
-tarball=${AYA_TARBALL:-https://github.com/cadavidf/aya/archive/refs/heads/main.tar.gz}
+tarball=${AYA_TARBALL:-https://github.com/cadavidf/aya-cli/archive/refs/heads/main.tar.gz}
 bin_dir=${HOME}/.local/bin
 target=${bin_dir}/aya
 fail() { echo "Error: $1" >&2; exit 1; }

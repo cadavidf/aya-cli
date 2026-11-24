@@ -6,8 +6,8 @@ Local terminal assistant powered by Ollama. Run `python3 aya.py` or use the `aya
 
 Requires Python 3.8+ and [Ollama](https://ollama.com/download) (install and start it yourself, then `ollama pull dolphin3:latest`). The installers never install Ollama, models or drivers.
 
-- Linux or macOS (bash or zsh): `curl -fsSL https://raw.githubusercontent.com/cadavidf/aya/main/install.sh | sh`
-- Windows (PowerShell): `irm https://raw.githubusercontent.com/cadavidf/aya/main/install.ps1 | iex`
+- Linux or macOS (bash or zsh): `curl -fsSL https://raw.githubusercontent.com/cadavidf/aya-cli/main/install.sh | sh`
+- Windows (PowerShell): `irm https://raw.githubusercontent.com/cadavidf/aya-cli/main/install.ps1 | iex`
 - WSL is a separate option: inside a WSL terminal, use the Linux command. Aya then behaves as Linux and talks to the Ollama that is reachable from WSL.
 
 The Unix installer puts a launcher at `~/.local/bin/aya` and never edits shell configuration; it refuses to overwrite a different `aya`. The Windows installer writes `%LOCALAPPDATA%\Aya\bin\aya.cmd` and asks before adding it to your user PATH. Rerun the same command to update. From a checkout, run `sh install.sh` or `.\install.ps1`.

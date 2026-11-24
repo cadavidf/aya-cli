@@ -1,7 +1,7 @@
 # Installs Aya on Windows (PowerShell 5.1 or newer). Run from a checkout, or piped: irm <url> | iex
 # It never installs Ollama or models.
 $ErrorActionPreference = 'Stop'
-$zip = if ($env:AYA_ZIP) { $env:AYA_ZIP } else { 'https://github.com/cadavidf/aya/archive/refs/heads/main.zip' }
+$zip = if ($env:AYA_ZIP) { $env:AYA_ZIP } else { 'https://github.com/cadavidf/aya-cli/archive/refs/heads/main.zip' }
 $root = Join-Path $env:LOCALAPPDATA 'Aya'
 $bin = Join-Path $root 'bin'
 
