@@ -1,0 +1,41 @@
+[
+  {
+    "model": "hf.co/mlabonne/gemma-3-4b-it-abliterated-v2-GGUF:Q4_K_M",
+    "case": "fabric_list",
+    "prompt": "Using the installed Fabric CLI, list all available patterns.",
+    "status": "proposed",
+    "seconds": 14.37,
+    "command": "fabric -l",
+    "processor_snapshot": "hf.co/mlabonne/gemma-3-4b-it-abliterated-v2-GGUF:Q4_K_M           36918512bba4    2.8 GB    100% CPU     4096       llamacpp    4 minutes from now",
+    "missing_components": [],
+    "review": "Required components checked; full correctness and safety require manual review."
+  },
+  {
+    "model": "hf.co/mlabonne/gemma-3-4b-it-abliterated-v2-GGUF:Q4_K_M",
+    "case": "audio",
+    "prompt": "Use ffmpeg to extract the first 10 seconds of audio from \"workout session.mp4\" to a WAV file named \"workout audio.wav\". Preserve filenames exactly.",
+    "status": "proposed",
+    "seconds": 10.23,
+    "command": "ffmpeg -ss 00:00:00 -to 10 -i \"workout session.mp4\" -c:a wav -y -vn -ac 1 -ar 44100 workout audio.wav",
+    "processor_snapshot": "hf.co/mlabonne/gemma-3-4b-it-abliterated-v2-GGUF:Q4_K_M           36918512bba4    2.8 GB    100% CPU     4096       llamacpp    4 minutes from now",
+    "missing_components": [
+      "10-second duration",
+      "exact WAV output path"
+    ],
+    "review": "Required components checked; full correctness and safety require manual review."
+  },
+  {
+    "model": "hf.co/mlabonne/gemma-3-4b-it-abliterated-v2-GGUF:Q4_K_M",
+    "case": "trim",
+    "prompt": "Use ffmpeg to create a 10-second video clip starting at 60 seconds from \"workout session.mp4\" and save it to \"short clip.mp4\". Preserve filenames exactly.",
+    "status": "proposed",
+    "seconds": 8.38,
+    "command": "ffmpeg -i \"workout session.mp4\" -ss 60 -v 10 -c copy short clip.mp4",
+    "processor_snapshot": "hf.co/mlabonne/gemma-3-4b-it-abliterated-v2-GGUF:Q4_K_M           36918512bba4    2.8 GB    100% CPU     4096       llamacpp    4 minutes from now",
+    "missing_components": [
+      "10-second duration",
+      "exact video output path"
+    ],
+    "review": "Required components checked; full correctness and safety require manual review."
+  }
+]

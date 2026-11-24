@@ -1,0 +1,41 @@
+[
+  {
+    "model": "hf.co/noctrex/Mistral-7B-Instruct-v0.3-abliterated-GGUF:Q4_K_M",
+    "case": "fabric_list",
+    "prompt": "Using the installed Fabric CLI, list all available patterns.",
+    "status": "proposed",
+    "seconds": 26.23,
+    "command": "`fabric -l`",
+    "processor_snapshot": "hf.co/noctrex/Mistral-7B-Instruct-v0.3-abliterated-GGUF:Q4_K_M    7f483b9d80fc    5.0 GB    100% CPU     4096       llamacpp    4 minutes from now",
+    "missing_components": [
+      "control characters or shell expansion require manual review"
+    ],
+    "review": "Required components checked; full correctness and safety require manual review."
+  },
+  {
+    "model": "hf.co/noctrex/Mistral-7B-Instruct-v0.3-abliterated-GGUF:Q4_K_M",
+    "case": "audio",
+    "prompt": "Use ffmpeg to extract the first 10 seconds of audio from \"workout session.mp4\" to a WAV file named \"workout audio.wav\". Preserve filenames exactly.",
+    "status": "proposed",
+    "seconds": 17.11,
+    "command": "`ffmpeg -ss 00:00:10 -i \"workout session.mp4\" -acodec pcm_s16le \"workout audio.wav\"`",
+    "processor_snapshot": "hf.co/noctrex/Mistral-7B-Instruct-v0.3-abliterated-GGUF:Q4_K_M    7f483b9d80fc    5.0 GB    100% CPU     4096       llamacpp    4 minutes from now",
+    "missing_components": [
+      "control characters or shell expansion require manual review"
+    ],
+    "review": "Required components checked; full correctness and safety require manual review."
+  },
+  {
+    "model": "hf.co/noctrex/Mistral-7B-Instruct-v0.3-abliterated-GGUF:Q4_K_M",
+    "case": "trim",
+    "prompt": "Use ffmpeg to create a 10-second video clip starting at 60 seconds from \"workout session.mp4\" and save it to \"short clip.mp4\". Preserve filenames exactly.",
+    "status": "proposed",
+    "seconds": 16.08,
+    "command": "`ffmpeg -ss 00:01:00 -i \"workout session.mp4\" -t 10 -c copy \"short clip.mp4\"`",
+    "processor_snapshot": "hf.co/noctrex/Mistral-7B-Instruct-v0.3-abliterated-GGUF:Q4_K_M    7f483b9d80fc    5.0 GB    100% CPU     4096       llamacpp    4 minutes from now",
+    "missing_components": [
+      "control characters or shell expansion require manual review"
+    ],
+    "review": "Required components checked; full correctness and safety require manual review."
+  }
+]
