@@ -2,7 +2,17 @@
 
 Local terminal assistant powered by Ollama. Run `python3 aya.py` or use the `aya` shell command.
 
-On Linux or macOS, from an Aya checkout run `sh install.sh` to add a launcher at `~/.local/bin/aya`. Add `~/.local/bin` to your PATH if needed. Install and start Ollama separately, then run `ollama pull dolphin3:latest`. The installer does not install models or modify shell configuration and refuses to overwrite an existing launcher.
+## Install
+
+Requires Python 3.8+ and [Ollama](https://ollama.com/download) (install and start it yourself, then `ollama pull dolphin3:latest`). The installers never install Ollama, models or drivers.
+
+- Linux or macOS (bash or zsh): `curl -fsSL https://raw.githubusercontent.com/cadavidf/aya/main/install.sh | sh`
+- Windows (PowerShell): `irm https://raw.githubusercontent.com/cadavidf/aya/main/install.ps1 | iex`
+- WSL is a separate option: inside a WSL terminal, use the Linux command. Aya then behaves as Linux and talks to the Ollama that is reachable from WSL.
+
+The Unix installer puts a launcher at `~/.local/bin/aya` and never edits shell configuration; it refuses to overwrite a different `aya`. The Windows installer writes `%LOCALAPPDATA%\Aya\bin\aya.cmd` and asks before adding it to your user PATH. Rerun the same command to update. From a checkout, run `sh install.sh` or `.\install.ps1`.
+
+Aya detects your OS and shell (Bash or Zsh on Linux and macOS, PowerShell on Windows) and asks the model for commands in that syntax. Generated commands always need your `y` before they run.
 
 Ask questions conversationally. Use `/command <request>` to generate a shell command; Aya asks before execution. Paste a YouTube link for the existing video workflow. Use `/help` for commands and `/clear` to clear session history.
 

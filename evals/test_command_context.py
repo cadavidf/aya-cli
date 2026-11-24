@@ -12,9 +12,19 @@ import aya
 class CommandContextTest(unittest.TestCase):
     def test_linux_prompt_requests_linux_commands(self):
         with patch.object(aya.sys, "platform", "linux"), \
+             patch.dict(aya.os.environ, {"SHELL": "/bin/bash"}), \
              patch.object(aya, "model_generate", return_value="pwd") as generate:
             self.assertEqual(aya.generate("show current directory"), "pwd")
         self.assertIn("Linux Bash command", generate.call_args.args[0])
+
+    def test_prompt_follows_shell_and_windows(self):
+        with patch.object(aya.sys, "platform", "darwin"), patch.dict(aya.os.environ, {"SHELL": "/bin/zsh"}):
+            self.assertEqual(aya.host_shell()[:2], ("macOS", "Zsh"))
+        with patch.object(aya.sys, "platform", "linux"), patch.dict(aya.os.environ, {"SHELL": "/usr/bin/fish"}):
+            self.assertEqual(aya.host_shell()[:2], ("Linux", "Bash"))
+        with patch.object(aya.sys, "platform", "win32"), patch.object(aya.shutil, "which", return_value=None):
+            self.assertEqual(aya.host_shell()[:2], ("Windows", "PowerShell"))
+            self.assertIn("-Command", aya.host_shell()[2])
 
     def test_fabric_help_is_in_model_prompt(self):
         calls = []

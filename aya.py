@@ -162,6 +162,26 @@ from aya_tools import WorkspaceTools
 MODEL = os.environ.get("AYA_MODEL", "dolphin3:latest")
 
 
+def host_shell():
+    """Return (OS name, shell name, argv prefix) for the shell that runs generated commands."""
+    if sys.platform == "win32":
+        exe = shutil.which("pwsh") or shutil.which("powershell") or "powershell"
+        return "Windows", "PowerShell", [exe, "-NoProfile", "-Command"]
+    osname = "macOS" if sys.platform == "darwin" else "Linux" if sys.platform.startswith("linux") else sys.platform
+    name = os.path.basename(os.environ.get("SHELL", ""))
+    if name not in ("bash", "zsh"):
+        name = "bash"  # automality: only bash and zsh are supported on POSIX; others fall back to bash
+    return osname, name.capitalize(), [shutil.which(name) or "/bin/bash", "-c"]
+
+
+def copy_to_clipboard(text):
+    for argv in (["pbcopy"], ["clip"], ["wl-copy"], ["xclip", "-selection", "clipboard"], ["xsel", "--clipboard", "--input"]):
+        if shutil.which(argv[0]):
+            subprocess.run(argv, input=text.encode("utf-8"), check=False)
+            return True
+    return False
+
+
 def model_generate(instruction):
     """Generate with Ollama by default, or an explicitly selected local server."""
     backend = os.environ.get("AYA_BACKEND", "ollama")
@@ -188,8 +208,12 @@ def model_generate(instruction):
             raise RuntimeError("Local llama-server request failed: " + str(exc)) from exc
     if backend != "ollama":
         raise RuntimeError("Unknown AYA_BACKEND; use ollama or llama")
-    process = subprocess.Popen(["ollama", "run", MODEL, instruction],
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        process = subprocess.Popen(["ollama", "run", MODEL, instruction],
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   text=True, encoding="utf-8", errors="replace")
+    except FileNotFoundError:
+        raise RuntimeError("Ollama is not installed or not on PATH. Install it from https://ollama.com/download") from None
     try:
         output, error = process.communicate()
     except KeyboardInterrupt:
@@ -197,7 +221,12 @@ def model_generate(instruction):
         process.communicate()
         raise
     if process.returncode:
-        raise RuntimeError(error.strip() or "Ollama could not generate a response")
+        error = error.strip()
+        if "connect" in error.lower():
+            error += "\nStart Ollama (open the Ollama app, or run `ollama serve`) and try again."
+        elif "not found" in error.lower():
+            error += "\nDownload the model with: ollama pull " + MODEL
+        raise RuntimeError(error or "Ollama could not generate a response")
     return output
 
 TEAL = "\033[38;2;54;214;188m"
@@ -490,10 +519,15 @@ def report(cmd, code, text):
 
 
 def run_and_report(cmd):
+    win = sys.platform == "win32"
+    if win:
+        cmd_to_run = "[Console]::OutputEncoding=[Text.Encoding]::UTF8; " + cmd
+        flags = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
+    else:
+        cmd_to_run, flags = cmd, {"start_new_session": True}
     proc = subprocess.Popen(
-        ["/bin/bash", "-c", cmd],
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        start_new_session=True,
+        host_shell()[2] + [cmd_to_run],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **flags,
     )
     chunks = []
     remaining = 1024 * 1024
@@ -509,7 +543,10 @@ def run_and_report(cmd):
             sys.stdout.flush()
         code = proc.wait()
     except KeyboardInterrupt:
-        os.killpg(proc.pid, signal.SIGKILL)
+        if win:
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True)
+        else:
+            os.killpg(proc.pid, signal.SIGKILL)
         proc.wait()
         raise
     report(cmd, code, b"".join(chunks).decode("utf-8", "replace"))
@@ -535,7 +572,7 @@ def generate(prompt):
         except (OSError, subprocess.TimeoutExpired):
             pass
     output = model_generate(
-            "Return exactly one raw " + ("macOS" if sys.platform == "darwin" else "Linux" if sys.platform.startswith("linux") else sys.platform) + " Bash command. "
+            "Return exactly one raw " + " ".join(host_shell()[:2]) + " command. "
             "No markdown, no explanations. Use the installed executable and valid flags. "
             "Preserve exact requested filenames and quote paths containing spaces. "
             "Request: " + prompt + context
@@ -624,7 +661,7 @@ def inspect_workspace(request):
 
 def banner():
     if sys.stdout.isatty():
-        os.system("clear")
+        print("\033[2J\033[H", end="")
 
     for i, line in enumerate(FRAMES[0]):
         label = ""
@@ -644,6 +681,9 @@ def banner():
 
 
 def main():
+  if sys.platform == "win32":
+      os.system("")  # enables ANSI colors in the Windows console
+      sys.stdout.reconfigure(encoding="utf-8")
   banner()
   history = []
   while True:
@@ -704,10 +744,7 @@ def main():
             run_and_report(cmd)
 
         elif confirm in ("c", "copy"):
-            subprocess.run(
-                ["pbcopy"], input=cmd.encode("utf-8")
-            )
-            print("Copied to clipboard.")
+            print("Copied to clipboard." if copy_to_clipboard(cmd) else "No clipboard tool found (pbcopy, clip, wl-copy, xclip or xsel).")
 
         print("\n" + GRAY + "─"*60 + RESET + "\n")
 
