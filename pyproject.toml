@@ -1,0 +1,20 @@
+[project]
+name = "aya-cli"
+version = "0.1.0"
+description = "Local terminal assistant: type English, confirm, run. Powered by Ollama."
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+
+[project.scripts]
+aya = "aya:main"
+
+[project.urls]
+Homepage = "https://github.com/cadavidf/aya-cli"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["aya", "aya_tools"]
