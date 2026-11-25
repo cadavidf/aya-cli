@@ -2,10 +2,12 @@
 """Black-box regression checks for Aya; no model, network, or user files required."""
 import json
 import os
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import unittest
 
@@ -40,10 +42,39 @@ class AyaEvaluation(unittest.TestCase):
         fake_yt.chmod(0o755)
         self.log = self.root / "model.jsonl"
         self.marker = self.root / "executed"
+        self.chat_log = self.log  # same file; chat() logs its own argv-shaped entry below
+        self.server = HTTPServer(("127.0.0.1", 0), self._make_handler())
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        self.addCleanup(self.server.shutdown)
+        self.addCleanup(self.server.server_close)
         self.env = os.environ.copy()
         self.env.update(HOME=str(self.root), PATH=str(self.bin) + ":/usr/bin:/bin",
                         TERM="dumb", AYA_EVAL_LOG=str(self.log),
-                        AYA_EVAL_MARKER=str(self.marker))
+                        AYA_EVAL_MARKER=str(self.marker),
+                        AYA_OLLAMA_URL="http://127.0.0.1:%d" % self.server.server_port)
+
+    def _make_handler(self):
+        chat_log = self.log
+
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *a):
+                pass
+
+            def do_POST(self):
+                body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+                prompt = body["messages"][-1]["content"]
+                seen = " ".join(m["content"] for m in body["messages"])  # whole conversation the model saw
+                with open(chat_log, "a", encoding="utf-8") as out:
+                    out.write(json.dumps(["chat", seen]) + "\n")
+                answer = "EVAL_SECOND_ANSWER" if "EVAL_SECOND_QUESTION" in prompt else "EVAL_FIRST_ANSWER"
+                reply = json.dumps({"message": {"content": answer}}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(reply)))
+                self.end_headers()
+                self.wfile.write(reply)
+
+        return Handler
 
     def run_aya(self, inputs, timeout=12):
         return subprocess.run([sys.executable, str(AYA)], input=inputs,

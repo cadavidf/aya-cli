@@ -45,8 +45,14 @@ class LlamaBackendTest(unittest.TestCase):
         self.assertEqual(len(server.requests), 3)
         for url, payload, timeout in server.requests:
             self.assertEqual(url, "http://127.0.0.1:9999/v1/chat/completions")
-            self.assertEqual(payload["messages"][0]["role"], "user")
             self.assertEqual(timeout, 180)
+        # generate() and inspect_workspace() send one user-role message each.
+        self.assertEqual(server.requests[0][1]["messages"][0]["role"], "user")
+        self.assertEqual(server.requests[2][1]["messages"][0]["role"], "user")
+        # chat() sends a system message first, then real conversation turns.
+        chat_messages = server.requests[1][1]["messages"]
+        self.assertEqual(chat_messages[0]["role"], "system")
+        self.assertEqual(chat_messages[-1], {"role": "user", "content": "Hi"})
         self.assertIn("color=blue", server.requests[2][1]["messages"][0]["content"])
 
     def test_nonlocal_server_is_rejected(self):
