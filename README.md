@@ -14,7 +14,7 @@ The Unix installer puts a launcher at `~/.local/bin/aya` and never edits shell c
 
 Aya detects your OS and shell (Bash or Zsh on Linux and macOS, PowerShell on Windows) and asks the model for commands in that syntax. Generated commands always need your `y` before they run.
 
-Ask questions conversationally. Use `/command <request>` to generate a shell command; Aya asks before execution. Paste a YouTube link for the existing video workflow. Use `/help` for commands and `/clear` to clear session history.
+Ask questions conversationally. Use `/command <request>` to generate a shell command; Aya asks before execution. Paste a  link for the existing video workflow. Use `/help` for commands and `/clear` to clear session history.
 
 Run the isolated regression evaluations with `python3 evals/test_aya.py`.
 
